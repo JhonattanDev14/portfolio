@@ -1,7 +1,7 @@
 import HeroBackground from "./HeroBackground";
 import HeroContent from "./HeroContent";
 import HeroButtons from "./HeroButtons";
-import HeroImage from "./HeroImage";
+import HeroVisual from "./HeroVisual";
 import HeroParticles from "./HeroParticles";
 import HeroScroll from "./HeroScroll";
 import HeroBadge from "./HeroBadge";
@@ -14,12 +14,14 @@ export default function Hero() {
         <HeroBackground />
 
         <Container className="relative z-10 flex min-h-screen items-center justify-between">
+            <div>
             <HeroContent />
             <HeroButtons />
+            </div>
 
-        </Container>/
+            <HeroVisual />
+        </Container>
 
-        <HeroImage />
         <HeroBadge />
         <HeroParticles />
         <HeroScroll />
