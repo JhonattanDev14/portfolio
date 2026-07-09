@@ -1,7 +1,6 @@
 import HeroBackground from "./HeroBackground";
 import HeroContent from "./HeroContent";
 import HeroButtons from "./HeroButtons";
-import HeroVisual from "./HeroVisual";
 import HeroParticles from "./HeroParticles";
 import HeroScroll from "./HeroScroll";
 import HeroBadge from "./HeroBadge";
