@@ -3,10 +3,12 @@ import { useMemo } from "react";
 
 export default function HeroVisual() {
   const particles = useMemo(() => {
-  return Array.from({ length: 30 }, () => ({
-    top: Math.random() * 100,
-    left: Math.random() * 100,
-    size: Math.random() * 4 + 2,
+    return Array.from({ length: 30 }, () => ({
+      top: Math.random() * 100,
+      left: Math.random() * 100,
+      size: Math.random() * 4 + 2,
+      speedX: (Math.random() - 0.5) * 0.4,
+      speedY: (Math.random() - 0.5) * 0.4,
     }));
   }, []);
   return (
@@ -22,6 +24,8 @@ export default function HeroVisual() {
             left: `${particle.left}%`,
             width: particle.size,
             height: particle.size,
+            speedX: particle.speedX,
+            speedY: particle.speedY
           }}
         />
       ))}
