@@ -10,6 +10,8 @@ import Scene from "@/scene/scene";
 
 export default function Hero() {
   return (
-    <Scene />
+    <section className="relative w-full h-screen">
+      <Scene />
+    </section>
   );
 }

@@ -3,13 +3,13 @@
 export default function Lights() {
   return (
     <>
-        <ambientLight intensity={0} />
+      <ambientLight intensity={0.25} />
 
-        <directionalLight
-            position={[3, 3, 3]}
-            intensity={10}
-            color="white"
-        />
+      <directionalLight
+          position={[5,5,5]}
+          intensity={2}
+          castShadow
+      />
     </>
   );
 }

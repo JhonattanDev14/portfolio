@@ -3,20 +3,14 @@
 import { Canvas } from "@react-three/fiber";
 import Camera from "./camera";
 import Lights from "./lights";
+import Particles from "./particles";
 
 export default function Scene() {
   return (
-    <Canvas>
-        <Camera />
-        <Lights />
-        <mesh position={[0, 0, 0]}>
-            <boxGeometry />
-            <meshStandardMaterial
-                color="blue"
-                metalness={0}
-                roughness={0}
-            />
-        </mesh>
+    <Canvas className="w-full h-screen">
+      <Camera />
+      <Lights />
+      <Particles />
     </Canvas>
   );
 }
