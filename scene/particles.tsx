@@ -100,7 +100,7 @@ export default function Particles() {
 
     dummy.updateMatrix();
 
-    meshRef.current.setMatrixAt(index, dummy.matrix);
+    meshRef.current!.setMatrixAt(index, dummy.matrix);
   });
 
   meshRef.current.instanceMatrix.needsUpdate = true;
