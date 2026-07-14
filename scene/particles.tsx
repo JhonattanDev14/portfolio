@@ -3,13 +3,16 @@
 import { useMemo, useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { InstancedMesh, Object3D } from "three";
+import { textToPoints } from "@/utils/TextToPoints";
 
-const COUNT = 5000;
+const COUNT = 10000;
 
 export default function Particles() {
   const meshRef = useRef<InstancedMesh>(null);
 
   const dummy = useMemo(() => new Object3D(), []);
+
+  const forming = useRef(false);
 
   const particles = useMemo(() => {
     return Array.from({ length: COUNT }, () => {
@@ -27,6 +30,11 @@ export default function Particles() {
         currentX: x,
         currentY: y,
 
+        // Poscion Objetivo
+        targetX: x,
+        targetY: y,
+        targetZ: z,
+        
         offset: Math.random() * Math.PI * 2,
         speed: 0.3 + Math.random() * 0.5,
       };
@@ -35,6 +43,22 @@ export default function Particles() {
 
   useEffect(() => {
     if (!meshRef.current) return;
+
+    const points = textToPoints("Developer", COUNT);
+
+    console.log("Puntos:", points.length);
+    console.log(points.slice(0, 10));
+
+    forming.current = true;
+
+    particles.forEach((particle, index) => {
+
+      if (index < points.length) {
+        particle.targetX = points[index].x;
+        particle.targetY = points[index].y;
+      }
+
+  });
 
     particles.forEach((particle, index) => {
       dummy.position.set(
@@ -52,55 +76,63 @@ export default function Particles() {
   }, [dummy, particles]);
 
   useFrame((state) => {
-  if (!meshRef.current) return;
+    if (!meshRef.current) return;
 
-  const time = state.clock.getElapsedTime();
+    const time = state.clock.getElapsedTime();
 
-  const mouseX = state.pointer.x * 8;
-  const mouseY = state.pointer.y * 4;
 
-  particles.forEach((particle, index) => {
+    const mouseX = state.pointer.x * 8;
+    const mouseY = state.pointer.y * 4;
 
-    // Posición objetivo (flotación)
-    let targetX =
-      particle.x +
-      Math.sin(time * particle.speed + particle.offset) * 0.04;
+    particles.forEach((particle, index) => {
 
-    let targetY =
-      particle.y +
-      Math.cos(time * particle.speed + particle.offset) * 0.04;
+      let targetX: number;
+      let targetY: number;
 
-    // Distancia al mouse
-    const dx = targetX - mouseX;
-    const dy = targetY - mouseY;
+      if (forming.current) {
+        targetX = particle.targetX;
+        targetY = particle.targetY;
+      } else {
+        targetX =
+          particle.x +
+          Math.sin(time * particle.speed + particle.offset) * -0.5;
 
-    const distance = Math.max(
-      Math.sqrt(dx * dx + dy * dy),
-      0.001
-    );
+        targetY =
+          particle.y +
+          Math.cos(time * particle.speed + particle.offset) * -0.5;
+      }
 
-    const radius = 2;
+      // Distancia al mouse
+      const dx = targetX - mouseX;
+      const dy = targetY - mouseY;
 
-    if (distance < radius) {
-      const force = (radius - distance) / radius;
+      const distance = Math.max(
+        Math.sqrt(dx * dx + dy * dy),
+        0.001
+      );
 
-      targetX += (dx / distance) * force * 0.8;
-      targetY += (dy / distance) * force * 0.8;
-    }
+      const radius = 2;
 
-    // Aquí está la magia
-    particle.currentX += (targetX - particle.currentX) * 0.08;
-    particle.currentY += (targetY - particle.currentY) * 0.08;
+      if (distance < radius) {
+        const force = (radius - distance) / radius;
 
-    dummy.position.set(
-      particle.currentX,
-      particle.currentY,
-      particle.z
-    );
+        targetX += (dx / distance) * force * 0.8;
+        targetY += (dy / distance) * force * 0.8;
+      }
 
-    dummy.updateMatrix();
+      // Aquí está la magia
+      particle.currentX += (targetX - particle.currentX) * 0.08;
+      particle.currentY += (targetY - particle.currentY) * 0.08;
 
-    meshRef.current!.setMatrixAt(index, dummy.matrix);
+      dummy.position.set(
+        particle.currentX,
+        particle.currentY,
+        particle.z
+      );
+
+      dummy.updateMatrix();
+
+      meshRef.current!.setMatrixAt(index, dummy.matrix);
   });
 
   meshRef.current.instanceMatrix.needsUpdate = true;
