@@ -6,7 +6,7 @@ import HeroScroll from "./HeroScroll";
 import HeroBadge from "./HeroBadge";
 import Container from "@/components/layout/container";
 import Section from "@/components/layout/section";
-import Scene from "@/scene/scene";
+import Scene from "@/components/three/Scene";
 
 export default function Hero() {
   return (
