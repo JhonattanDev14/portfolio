@@ -40,7 +40,14 @@ html{
 }
 
 body{
-  background:var(--background);
+  background:
+    radial-gradient(
+      circle at center,
+      #101a38 0%,
+      #081020 35%,
+      #050816 65%,
+      #020308 100%
+    );
   color:var(--text);
   font-family:var(--font-geist-sans);
   overflow-x:hidden;
