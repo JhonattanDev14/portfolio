@@ -12,7 +12,7 @@ export default function Scene() {
       <Lights />
       <Particles />
       <Model3D
-        path="/models/logo.glb"
+        path="/models/Logo.glb"
         position={[0, 0, 0]}
         scale={1}
         rotation={[0,0,0]}
