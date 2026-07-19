@@ -60,9 +60,7 @@ export default function Model3D({
         scale={scale}
     >
         <primitive
-        object={clonedScene}
-        scale={1.5}
-        rotation={[0, 0, 0]}        
+        object={clonedScene}       
         />
     </group>
     );
