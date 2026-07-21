@@ -3,7 +3,7 @@
 import { Canvas } from "@react-three/fiber";
 import { ScrollControls } from "@react-three/drei";
 import { Fog } from "three";
-import { Camera, Lights, Particles, Model3D, Effects, ScrollRig, CameraRig, SceneManager, } from ".";
+import { Camera, Lights, Particles, Model3D, Effects, ScrollRig, CameraRig, SceneManager, Points } from ".";
 
 export default function Scene() {
   return (
@@ -17,7 +17,8 @@ export default function Scene() {
         <CameraRig />
 
         <Lights />
-        <Particles />
+        {/* <Particles /> */}
+        <Points />
         <Model3D
           path="/models/Logo.glb"
           position={[0, 0, 0]}

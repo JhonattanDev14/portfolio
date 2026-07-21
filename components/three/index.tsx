@@ -6,3 +6,4 @@ export { default as Effects } from "./Effects";
 export { default as ScrollRig } from "./ScrollRig";
 export { default as CameraRig } from "./CameraRig";
 export { default as SceneManager } from "./SceneManager";
+export { default as Points } from "./Points";
