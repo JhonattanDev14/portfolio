@@ -1,4 +1,12 @@
-export function textToPoints(text: string, count: number) {
+export function textToPoints(
+  text: string,
+  count: number,
+  options = {
+    scale: 0.02,
+    offsetX: 0,
+    offsetY: 0,
+  }
+) {
   const canvas = document.createElement("canvas");
 
   canvas.width = 1000;
@@ -32,8 +40,7 @@ export function textToPoints(text: string, count: number) {
     );
 
     const points = [];
-    const gap = 1;
-    const scale = 0.02;
+    const gap = 1;  
     
     for (let y = 0; y < canvas.height; y += gap) {
         for (let x = 0; x < canvas.width; x += gap) {
@@ -41,8 +48,15 @@ export function textToPoints(text: string, count: number) {
             const alpha = imageData.data[index + 3];
             if (alpha > 128) {
                 points.push({
-                    x: (x - canvas.width / 2) * scale,
-                    y: -(y - canvas.height / 2) * scale,
+                    x:
+                    (x - canvas.width / 2) *
+                    options.scale +
+                    options.offsetX,
+
+                    y:
+                    -(y - canvas.height / 2) *
+                    options.scale +
+                    options.offsetY,
                 });
             }
         }
