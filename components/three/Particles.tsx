@@ -1,12 +1,10 @@
 "use client";
 
 import { useMemo, useRef, useEffect } from "react";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { InstancedMesh, Object3D } from "three";
 import { createParticleMaterial } from "./particleMaterial";
 import { textToPoints } from "@/utils/TextToPoints";
-
-const COUNT = 10000;
 
 declare global {
   namespace JSX {
@@ -17,6 +15,15 @@ declare global {
 }
 
 export default function Particles() {
+
+  const { size } = useThree();
+
+  const globalScale = useMemo(() => {
+    return Math.min(size.width / 1920, 1.5);
+  }, [size.width]);
+
+  const COUNT = 5000;
+
   const meshRef = useRef<InstancedMesh>(null);
 
   // Objeto auxiliar para actualizar cada instancia.
@@ -30,44 +37,32 @@ export default function Particles() {
 
   // texto con particulas
   useEffect(() => {
+    const timer = setTimeout(() => {
+      forming.current = true;
+    }, 10000);
+    return () => clearTimeout(timer);
+  }, []);
 
-      const timer = setTimeout(() => {
 
-        forming.current = true;
-
-      }, 10000);
-
-      return () => clearTimeout(timer);
-
-    }, []);
-
-  const tmxPoints = useMemo(
-    () =>
-      textToPoints(
-        "TMX",
-        1200,
-        {
-          scale: 0.005,
+    const tmxPoints = useMemo(
+      () =>
+        textToPoints("Jhonattan", 2000, {
+          scale: 0.009,
           offsetX: 0,
           offsetY: 0,
-        }
-      ),
-    []
-  );
+        }),
+      []
+    );
 
-  const developerPoints = useMemo(
-    () =>
-      textToPoints(
-        "Developer",
-        2200,
-        {
-          scale: 0.008,
+    const developerPoints = useMemo(
+      () =>
+        textToPoints("Developerfdfsdfsdfdsfsdf", 2000, {
+          scale: 0.009,
           offsetX: 0,
-          offsetY: 0.5,
-        }
-      ),
-    []
-  );
+          offsetY: 1,
+        }),
+      []
+    );
 
 
   // Crea todas las partículas una única vez.
@@ -87,27 +82,6 @@ export default function Particles() {
         currentX: x,
         currentY: y,
         currentZ: z,
-
-        // Destino de la partícula.
-        targetX:
-          index < tmxPoints.length
-            ? tmxPoints[index].x
-            : index < tmxPoints.length + developerPoints.length
-            ? developerPoints[index - tmxPoints.length].x
-            : x,
-
-        targetY:
-          index < tmxPoints.length
-            ? tmxPoints[index].y + 1.2
-            : index < tmxPoints.length + developerPoints.length
-            ? developerPoints[index - tmxPoints.length].y - 1.8
-            : y,
-
-        // Profundidad de las letras.
-        targetZ:
-          index < tmxPoints.length + developerPoints.length
-            ? (Math.random() - 0.5) * 0.08
-            : z,
 
         // Movimiento flotante.
         offset: Math.random() * Math.PI * 2,
@@ -133,12 +107,27 @@ export default function Particles() {
 
     if (
   forming.current &&
-  index < tmxPoints.length + developerPoints.length
+  index < tmxPoints.points.length + developerPoints.points.length
       ) {
 
-        // Solo las partículas del texto forman las palabras.
-        targetX = particle.targetX;
-        targetY = particle.targetY;
+        let point;
+        let scale = 1;
+
+        if (index < tmxPoints.points.length) {
+          point = tmxPoints.points[index];
+          scale = 0.7;
+        } else {
+          point =
+            developerPoints.points[
+              index - tmxPoints.points.length
+            ];
+          scale = 0.7;
+        }
+
+        targetX = point.x * scale * globalScale;
+        targetY =
+          point.y * scale * globalScale +
+          (index < tmxPoints.points.length ? 1.2 : -1.8);
 
       } else {
 
@@ -165,10 +154,9 @@ export default function Particles() {
 
       const targetZ =
         forming.current &&
-        index < tmxPoints.length + developerPoints.length
-          ? particle.targetZ
+        index < tmxPoints.points.length + developerPoints.points.length
+          ? 0
           : particle.z;
-
 
       particle.currentZ +=
         (targetZ - particle.currentZ) * 0.05;
