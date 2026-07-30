@@ -22,7 +22,7 @@ export default function Particles() {
     return Math.min(size.width / 1920, 1.5);
   }, [size.width]);
 
-  const COUNT = 5000;
+  const COUNT = 3500;
 
   const meshRef = useRef<InstancedMesh>(null);
 
@@ -33,20 +33,20 @@ export default function Particles() {
   const material = useMemo(createParticleMaterial, []);
 
   // Indica si las partículas forman una figura.
-  const forming = useRef(true);
+  const forming = useRef(false);
 
   // texto con particulas
   useEffect(() => {
     const timer = setTimeout(() => {
       forming.current = true;
-    }, 10000);
+    }, 3000);
     return () => clearTimeout(timer);
   }, []);
 
 
     const tmxPoints = useMemo(
       () =>
-        textToPoints("Jhonattan", 2000, {
+        textToPoints("Jhonattan", 1000, {
           scale: 0.009,
           offsetX: 0,
           offsetY: 0,
@@ -56,7 +56,7 @@ export default function Particles() {
 
     const developerPoints = useMemo(
       () =>
-        textToPoints("Developerfdfsdfsdfdsfsdf", 2000, {
+        textToPoints("Developer", 1000, {
           scale: 0.009,
           offsetX: 0,
           offsetY: 1,

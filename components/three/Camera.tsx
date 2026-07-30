@@ -10,8 +10,8 @@ export default function Camera() {
   return (
     <PerspectiveCamera
       makeDefault
-      position={[0, 0, responsive.isMobile ? 6.5 : responsive.isTablet ? 5.7 : 5]}
-      fov={45}
+      position={[-0.9, 3, responsive.isMobile ? 6.5 : responsive.isTablet ? 5.7 : 5]}
+      fov={80}
     />
   );
 }
