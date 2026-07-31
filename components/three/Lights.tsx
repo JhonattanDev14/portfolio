@@ -16,7 +16,7 @@ export default function Lights() {
 
       {/* Luz de relleno desde atrás */}
       <directionalLight
-        position={[20, 10, 1]}
+        position={[5, 10, -5]}
         intensity={2}
         color="#e96bf4"
       />
@@ -30,7 +30,7 @@ export default function Lights() {
 
       {/* Luz de relleno desde atrás */}
       <directionalLight
-        position={[5, 10, -5]}
+        position={[5, 10, -4]}
         intensity={2}
         color="#89e5ff"
       />

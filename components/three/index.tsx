@@ -7,3 +7,4 @@ export { default as ScrollRig } from "./ScrollRig";
 export { default as CameraRig } from "./CameraRig";
 export { default as SceneManager } from "./SceneManager";
 export { default as Responsive } from "./Responsive";
+export { default as CameraController } from "./CameraController";

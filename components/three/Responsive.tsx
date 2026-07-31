@@ -11,11 +11,7 @@ export default function useResponsive() {
       : 1;
 
   const adapt = (value: number) => value * factor;
-  console.log({
-  viewportWidth: viewport.width,
-  viewportHeight: viewport.height,
-  factor,
-  });   
+  
   return {
     viewport,
     factor,
