@@ -25,7 +25,7 @@ export default function SceneContent({ ready }: { ready: boolean }) {
             />
 
             <Suspense fallback={null}>
-              <Model3D path="/models/Escene.glb" />
+              <Model3D path="/models/Escene-meshopt.glb" />
             </Suspense>
             
         </ScrollControls>
