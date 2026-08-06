@@ -4,35 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Group } from "three";
 import Model3D from "./Model3D";
-
-type AnimationConfig = {
-    type: "fadeUp";
-    from?: {
-        x?: number;
-        y?: number;
-        z?: number;
-        scale?: number;
-        opacity?: number;
-    };
-    duration?: number;
-};
-
-type AnimatedModelProps = {
-    model: {
-        path: string;
-        delay?: number;
-        animation?: AnimationConfig;
-    };
-};
+import type { SceneModel } from "./data/Models";
 
 export default function AnimatedModel({
-    model,
-}: AnimatedModelProps) {
-    const {
-        path,
-        delay = 0,
-        animation,
-    } = model;
+    path,
+    delay = 0,
+    animation,
+}: SceneModel) {
 
     const groupRef = useRef<Group>(null);
 

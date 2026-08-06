@@ -38,12 +38,12 @@ export default function SceneContent({ ready }: { ready: boolean }) {
 
             {showObjects &&
               sceneModels.map((model) => (
-                <AnimatedModel
-                    key={model.path}
-                    model={model}
-                />
+                  <AnimatedModel
+                      key={model.path}
+                      {...model}
+                  />
               ))
-            }
+          }
             
         </ScrollControls>
     </>
