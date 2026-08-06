@@ -1,9 +1,14 @@
 import { ScrollControls, Environment, PerspectiveCamera } from "@react-three/drei";
 import { Fog } from "three";
 import { Lights, Model3D, ScrollRig, SceneManager, CameraController} from ".";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
+import { sceneModels } from "./data/Models";
+import AnimatedModel from "./AnimatedModel";
 
 export default function SceneContent({ ready }: { ready: boolean }) {
+  const [showObjects, setShowObjects] = useState(false);
+
+
   return (
     <>
         <ScrollControls pages={3} damping={0.15}>
@@ -13,20 +18,32 @@ export default function SceneContent({ ready }: { ready: boolean }) {
                 fov={45}
             />
 
-            {ready && <CameraController />}
+            {ready && (
+                <CameraController
+                    onCameraAnimationEnd={() => {
+                        console.log("La cámara terminó");
+                        setShowObjects(true);
+                    }}
+                />
+            )}
 
             <ScrollRig />
             <SceneManager />
 
             <Lights />
-            <Environment
-                preset="forest"
-                environmentIntensity={0.02}
-            />
 
             <Suspense fallback={null}>
-              <Model3D path="/models/Escene-meshopt.glb" />
+              <Model3D path="/models/Escene-opt.glb" />
             </Suspense>
+
+            {showObjects &&
+              sceneModels.map((model) => (
+                <AnimatedModel
+                    key={model.path}
+                    model={model}
+                />
+              ))
+            }
             
         </ScrollControls>
     </>
