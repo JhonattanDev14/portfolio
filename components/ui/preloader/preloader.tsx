@@ -7,32 +7,30 @@ import { Canvas } from "@react-three/fiber";
 interface Props {
   onFinish: () => void;
   timer?: number;
+  resourcesLoaded: boolean;
 }
 
 export default function Preloader({
   onFinish,
   timer = 7000,
+  resourcesLoaded,
 }: Props) {
 
   const [hide, setHide] = useState(false);
 
   useEffect(() => {
-
     const timeout = setTimeout(() => {
+      if (!resourcesLoaded) return;
 
-        onFinish(); // activa cámara inmediatamente
+      onFinish();
 
-        setTimeout(() => {
-            setHide(true); // empieza fade del logo
-
-        }, 50);
-
+      setTimeout(() => {
+        setHide(true);
+      }, 50);
     }, timer);
 
-
     return () => clearTimeout(timeout);
-
-  }, [onFinish, timer]);
+  }, [onFinish, timer, resourcesLoaded]);
 
 
   return (
