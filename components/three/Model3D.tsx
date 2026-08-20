@@ -7,19 +7,20 @@ import { useFrame } from "@react-three/fiber";
 import { cameraTarget } from "./CameraTarget";
 
 interface Model3DProps {
-  path: string;
+    path: string;
 
-  position?: [number, number, number];
-  rotation?: [number, number, number];
-  scale?: number | [number, number, number];
+    position?: [number, number, number];
+    rotation?: [number, number, number];
+    scale?: number | [number, number, number];
 
-  autoRotate?: boolean;
-  rotationSpeed?: number;
+    autoRotate?: boolean;
+    rotationSpeed?: number;
 
-  lazy?: boolean;
-  delay?: number;
+    lazy?: boolean;
+    delay?: number;
 
-  onLoad?: () => void;
+    onLoad?: () => void;
+    onSceneLoad?: (scene: Group) => void;
 }
 
 
@@ -27,12 +28,14 @@ function LoadedModel({
     path, 
     group,
     onCameraLoad,
-    onLoad
+    onLoad,
+    onSceneLoad
 }: { 
     path: string; 
     group: React.RefObject<Group | null>;
     onCameraLoad: (camera: PerspectiveCamera | null, scene: any) => void;
     onLoad?: () => void;
+    onSceneLoad?: (scene : Group) => void
 }) {
 
     const { scene, animations } = useGLTF(path);
@@ -43,8 +46,9 @@ function LoadedModel({
 
     // Avisar cuando el modelo ya está montado
     useEffect(() => {
-        onLoad?.();
-    }, [onLoad]);
+    onLoad?.();
+    onSceneLoad?.(clonedScene);
+}, [clonedScene, onLoad, onSceneLoad]);
 
 
     // Obtener cámara interna del GLB
@@ -100,7 +104,8 @@ export default function Model3D({
     scale = 1,
     autoRotate = false, 
     rotationSpeed = 0.5,
-    onLoad
+    onLoad,
+    onSceneLoad
 
 }: Model3DProps) {
 
@@ -149,6 +154,7 @@ export default function Model3D({
                     group={group}
                     onCameraLoad={handleCameraLoad}
                     onLoad={onLoad}
+                    onSceneLoad={onSceneLoad}
                 />
 
             </Suspense>

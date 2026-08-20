@@ -9,7 +9,7 @@ export default function Lights() {
       Luz principal
       <directionalLight
         position={[-6, 8, 4]}
-        intensity={9}
+        intensity={7}
         color="#b8b8b8"
         castShadow
       />
@@ -24,14 +24,14 @@ export default function Lights() {
       {/* Luz de relleno desde atrás */}
       <directionalLight
         position={[-1, 10, -9]}
-        intensity={1}
+        intensity={3}
         color="#f88c52"
       />
 
       {/* Luz de relleno desde atrás */}
       <directionalLight
         position={[5, 10, -4]}
-        intensity={2}
+        intensity={1.5}
         color="#89e5ff"
       />
     </>

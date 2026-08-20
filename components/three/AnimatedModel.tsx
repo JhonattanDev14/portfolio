@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useFrame } from "@react-three/fiber";
 import { Group } from "three";
+import { gsap } from "gsap";
 import Model3D from "./Model3D";
 import type { SceneModel } from "./data/Models";
 
@@ -16,7 +16,9 @@ export default function AnimatedModel({
 
     const [visible, setVisible] = useState(delay === 0);
 
+
     useEffect(() => {
+
         if (delay === 0) return;
 
         const timer = setTimeout(() => {
@@ -24,50 +26,93 @@ export default function AnimatedModel({
         }, delay);
 
         return () => clearTimeout(timer);
+
     }, [delay]);
 
+
     useEffect(() => {
+
         if (!visible) return;
         if (!groupRef.current) return;
 
-        groupRef.current.position.x = animation?.from?.x ?? 0;
-        groupRef.current.position.y = animation?.from?.y ?? 0;
-        groupRef.current.position.z = animation?.from?.z ?? 0;
 
-        const scale = animation?.from?.scale ?? 1;
-        groupRef.current.scale.set(scale, scale, scale);
+        const group = groupRef.current;
 
-    }, [visible, animation]);
+        const from = animation?.from;
 
-    useFrame(() => {
-        if (!groupRef.current) return;
 
-        if (animation?.type === "fadeUp") {
-            groupRef.current.position.x +=
-                (0 - groupRef.current.position.x) * 0.08;
+        group.position.set(
+            from?.x ?? 0,
+            from?.y ?? 0,
+            from?.z ?? 0
+        );
 
-            groupRef.current.position.y +=
-                (0 - groupRef.current.position.y) * 0.08;
 
-            groupRef.current.position.z +=
-                (0 - groupRef.current.position.z) * 0.08;
+        const scale = from?.scale ?? 1;
 
-            groupRef.current.scale.lerp(
-                {
-                    x: 1,
-                    y: 1,
-                    z: 1,
-                } as any,
-                0.08
-            );
-        }
-    });
+        group.scale.set(
+            scale,
+            scale,
+            scale
+        );
+
+
+        const duration = animation?.duration ?? 1.5;
+
+        const ease = animation?.ease ?? "power3.out";
+
+
+        const timeline = gsap.timeline();
+
+
+        timeline.to(
+            group.position,
+            {
+                x: 0,
+                y: 0,
+                z: 0,
+                duration,
+                ease,
+            },
+            0
+        );
+
+
+        timeline.to(
+            group.scale,
+            {
+                x: 1,
+                y: 1,
+                z: 1,
+                duration,
+                ease,
+            },
+            0
+        );
+
+
+        return () => {
+
+            timeline.kill();
+
+        };
+
+    }, [
+        visible,
+        animation,
+    ]);
+
 
     if (!visible) return null;
 
+
     return (
         <group ref={groupRef}>
-            <Model3D path={path} />
+
+            <Model3D
+                path={path}
+            />
+
         </group>
     );
 }
