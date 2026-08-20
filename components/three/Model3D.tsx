@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef } from "react";
-import { Group, PerspectiveCamera } from "three";
+import { Group, PerspectiveCamera, LoopOnce } from "three";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
 import { cameraTarget } from "./CameraTarget";
@@ -16,6 +16,8 @@ interface Model3DProps {
     autoRotate?: boolean;
     rotationSpeed?: number;
 
+    animationSpeed?: number;
+
     lazy?: boolean;
     delay?: number;
 
@@ -29,13 +31,15 @@ function LoadedModel({
     group,
     onCameraLoad,
     onLoad,
-    onSceneLoad
+    onSceneLoad,
+    animationSpeed = 1,
 }: { 
     path: string; 
     group: React.RefObject<Group | null>;
     onCameraLoad: (camera: PerspectiveCamera | null, scene: any) => void;
     onLoad?: () => void;
     onSceneLoad?: (scene : Group) => void
+    animationSpeed?: number;
 }) {
 
     const { scene, animations } = useGLTF(path);
@@ -76,7 +80,13 @@ function LoadedModel({
 
 
         Object.values(actions).forEach((action) => {
-            action?.reset().fadeIn(0.4).play();
+            if (!action) return;
+
+            action.reset();
+            action.timeScale = animationSpeed;
+            action.setLoop(LoopOnce, 1);
+            action.clampWhenFinished = true;
+            action.fadeIn(0.4).play();
         });
 
 
@@ -104,6 +114,7 @@ export default function Model3D({
     scale = 1,
     autoRotate = false, 
     rotationSpeed = 0.5,
+    animationSpeed = 1,
     onLoad,
     onSceneLoad
 
@@ -155,6 +166,7 @@ export default function Model3D({
                     onCameraLoad={handleCameraLoad}
                     onLoad={onLoad}
                     onSceneLoad={onSceneLoad}
+                    animationSpeed={animationSpeed}
                 />
 
             </Suspense>
