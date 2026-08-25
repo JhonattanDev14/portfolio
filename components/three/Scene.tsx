@@ -5,6 +5,8 @@ import SceneContent from "./SceneContent";
 import { useCallback, useState } from "react";
 import Preloader from "@/components/ui/preloader/preloader";
 import Resources from "./Resources";
+import MusicPlayer from "@/components/ui/musicPlayer/musicPlayer";
+
 
 export default function Scene() {
   const [ready, setReady] = useState(false);
@@ -21,14 +23,15 @@ export default function Scene() {
 
         <SceneContent ready={ready} />
       </Canvas>
-
+      
       {!ready && (
         <Preloader
-          timer={3000}
-          resourcesLoaded={resourcesLoaded}
-          onFinish={() => setReady(true)}
+        timer={3000}
+        resourcesLoaded={resourcesLoaded}
+        onFinish={() => setReady(true)}
         />
       )}
+      {ready && <MusicPlayer enabled={ready} />}
     </>
   );
 }
