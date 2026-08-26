@@ -47,7 +47,7 @@ export default function CameraController({onCameraAnimationEnd,}:{ onCameraAnima
 
         // zoom of the camera 
         if ("fov" in camera) {
-            camera.fov = MathUtils.lerp(camera.fov, target.fov, 0.05);
+            camera.fov = MathUtils.lerp(camera.fov, target.fov, 0.01);
             camera.updateProjectionMatrix();
         }
     });

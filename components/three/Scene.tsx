@@ -6,6 +6,8 @@ import { useCallback, useState } from "react";
 import Preloader from "@/components/ui/preloader/preloader";
 import Resources from "./Resources";
 import MusicPlayer from "@/components/ui/musicPlayer/musicPlayer";
+import MusicBackground from "@/components/ui/musicBackground/musicBackground";
+import { OrbitControls } from "@react-three/drei";
 
 
 export default function Scene() {
@@ -18,7 +20,9 @@ export default function Scene() {
 
   return (
     <>
-      <Canvas className="w-full h-screen">
+      <MusicBackground />
+      <Canvas className="relative z-10 h-screen w-full">
+        {/* <OrbitControls /> */}
         <Resources onLoaded={handleResourcesLoaded} />
 
         <SceneContent ready={ready} />

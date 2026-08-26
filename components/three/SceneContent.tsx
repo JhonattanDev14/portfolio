@@ -33,11 +33,11 @@ export default function SceneContent({ ready }: { ready: boolean }) {
 
         <ScrollRig />
         <SceneManager />
-
         <Lights />
 
         <Suspense fallback={null}>
           <Model3D path="/models/Escene-opt.glb" />
+          <Model3D path="/models/AudioWaves.glb" />
         </Suspense>
 
         {showObjects &&
