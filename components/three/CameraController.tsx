@@ -1,56 +1,137 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { MathUtils, Quaternion, Vector3 } from "three";
+import { PerspectiveCamera, MathUtils, Quaternion, Vector3 } from "three";
 import { useRef } from "react";
+import { gsap } from "gsap";
 import { cameraTarget } from "./CameraTarget";
 
 const worldPosition = new Vector3();
 const worldQuaternion = new Quaternion();
 
-export default function CameraController({onCameraAnimationEnd,}:{ onCameraAnimationEnd? : () => void; }) {
-    const { camera } = useThree();
+type CameraControllerProps = {
+  onCameraAnimationEnd?: () => void;
+  moveSpeed?: number;
+  rotationSpeed?: number;
+  zoomSpeed?: number;
+  endDistance?: number;
+};
 
-    const ready = useRef(false);
+export default function CameraController({
+  onCameraAnimationEnd,
+  moveSpeed = 0.05,
+  rotationSpeed = 0.05,
+  zoomSpeed = 0.01,
+  endDistance = 0.001,
+}: CameraControllerProps) {
+  const { camera } = useThree();
 
-    const animationEnded = useRef(false);
+  const ready = useRef(false);
+  const animationEnded = useRef(false);
+  const previousTarget = useRef<PerspectiveCamera | null>(null);
 
-    useFrame(() => {
-        // Get camera coordinates from scene
-        const target = cameraTarget.current;
+  useFrame(() => {
+    const target = cameraTarget.current;
 
-        if (!target) return;
-        
-        // Update the matrix to get data now
-        target.updateMatrixWorld(true);
+    if (!target) return;
 
-        if (!ready.current) {
-            ready.current = true;
-            return;
-        }
-        // Move the camera smootly
-        target.getWorldPosition(worldPosition);
-        camera.position.lerp(worldPosition, 0.05);
+    target.updateMatrixWorld(true);
 
-        // Rotate the camera slowly 
-        target.getWorldQuaternion(worldQuaternion);
-        camera.quaternion.slerp(worldQuaternion, 0.05);
-        
-        // Get camera position
-        const distance = camera.position.distanceTo(worldPosition);
+    // Navigation between hotspots
+    // Navigation between hotspots
+if (
+  cameraTarget.transition &&
+  target !== previousTarget.current
+) {
+      previousTarget.current = target;
 
-        // Active once camera animations ends
-        if (!animationEnded.current && distance < 0.001) {
-            animationEnded.current = true;
-            onCameraAnimationEnd?.();
-        }
+      target.getWorldPosition(worldPosition);
+      target.getWorldQuaternion(worldQuaternion);
 
-        // zoom of the camera 
-        if ("fov" in camera) {
-            camera.fov = MathUtils.lerp(camera.fov, target.fov, 0.01);
+      const transition = cameraTarget.transition;
+
+      gsap.killTweensOf(camera.position);
+      gsap.killTweensOf(camera.quaternion);
+
+      gsap.to(camera.position, {
+        x: worldPosition.x,
+        y: worldPosition.y,
+        z: worldPosition.z,
+        duration: transition?.duration ?? 2,
+        ease: transition?.ease ?? "power2.inOut",
+      });
+
+      const quaternionProxy = {
+        x: camera.quaternion.x,
+        y: camera.quaternion.y,
+        z: camera.quaternion.z,
+        w: camera.quaternion.w,
+      };
+
+      gsap.to(quaternionProxy, {
+        x: worldQuaternion.x,
+        y: worldQuaternion.y,
+        z: worldQuaternion.z,
+        w: worldQuaternion.w,
+        duration: transition?.rotationDuration ?? 4,
+        ease: transition?.ease ?? "power2.inOut",
+        onUpdate: () => {
+          camera.quaternion.set(
+            quaternionProxy.x,
+            quaternionProxy.y,
+            quaternionProxy.z,
+            quaternionProxy.w
+          );
+        },
+      });
+
+      if (camera instanceof PerspectiveCamera) {
+        gsap.to(camera, {
+          fov: target.fov,
+          duration: transition?.duration ?? 2,
+          ease: transition?.ease ?? "power2.inOut",
+          onUpdate: () => {
             camera.updateProjectionMatrix();
-        }
-    });
+          },
+        });
+      }
 
-    return null;
+      animationEnded.current = false;
+
+      return;
+    }
+
+    // Initial camera animation
+    if (previousTarget.current) return;
+
+    if (!ready.current) {
+      ready.current = true;
+      return;
+    }
+
+    target.getWorldPosition(worldPosition);
+    camera.position.lerp(worldPosition, moveSpeed);
+
+    target.getWorldQuaternion(worldQuaternion);
+    camera.quaternion.slerp(worldQuaternion, rotationSpeed);
+
+    const distance = camera.position.distanceTo(worldPosition);
+
+    if (!animationEnded.current && distance < endDistance) {
+      animationEnded.current = true;
+      onCameraAnimationEnd?.();
+    }
+
+    if (camera instanceof PerspectiveCamera) {
+      camera.fov = MathUtils.lerp(
+        camera.fov,
+        target.fov,
+        zoomSpeed
+      );
+
+      camera.updateProjectionMatrix();
+    }
+  });
+
+  return null;
 }

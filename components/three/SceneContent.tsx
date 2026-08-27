@@ -9,9 +9,20 @@ import {
 import { Suspense, useState } from "react";
 import { sceneModels } from "./data/Models";
 import AnimatedModel from "./AnimatedModel";
+import AudioWave from "./AudioWave";
+import { Group } from "three";
+import Navigation from "./Navigation";
 
-export default function SceneContent({ ready }: { ready: boolean }) {
+export default function SceneContent({
+  ready,
+  analyserRef,
+}: {
+  ready: boolean;
+  analyserRef: React.RefObject<AnalyserNode | null>;
+}) {
+
   const [showObjects, setShowObjects] = useState(false);
+  const [audioWaveScene, setAudioWaveScene] = useState<Group | null>(null);
 
   return (
     <>
@@ -24,8 +35,11 @@ export default function SceneContent({ ready }: { ready: boolean }) {
 
         {ready && (
           <CameraController
+            moveSpeed={0.09}
+            rotationSpeed={0.9}
+            zoomSpeed={0.01}
+            endDistance={0.001}
             onCameraAnimationEnd={() => {
-              console.log("La cámara terminó");
               setShowObjects(true);
             }}
           />
@@ -37,7 +51,15 @@ export default function SceneContent({ ready }: { ready: boolean }) {
 
         <Suspense fallback={null}>
           <Model3D path="/models/Escene-opt.glb" />
-          <Model3D path="/models/AudioWaves.glb" />
+          <Model3D
+            path="/models/AudioWaves.glb"
+            onSceneLoad={setAudioWaveScene}
+          />
+          <AudioWave
+            scene={audioWaveScene}
+            analyserRef={analyserRef}
+          />
+          <Navigation />
         </Suspense>
 
         {showObjects &&

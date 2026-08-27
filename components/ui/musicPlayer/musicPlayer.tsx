@@ -11,8 +11,18 @@ import {
   VolumeX,
 } from "lucide-react";
 
-export default function MusicPlayer({ enabled }: { enabled: boolean }) {
+export default function MusicPlayer({
+  enabled,
+  analyserRef,
+}: {
+  enabled: boolean;
+  analyserRef: React.RefObject<AnalyserNode | null>;
+}) {
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const sourceRef = useRef<MediaElementAudioSourceNode | null>(null);
+
 
   const [currentTrack, setCurrentTrack] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -20,28 +30,61 @@ export default function MusicPlayer({ enabled }: { enabled: boolean }) {
   const [volume, setVolume] = useState(0.1);
   const [showVolume, setShowVolume] = useState(false);
 
+
   useEffect(() => {
     const audio = new Audio(playlist[currentTrack].src);
 
-    audio.loop = false;
-    audio.volume = volume;
+audio.loop = false;
+audio.volume = volume;
 
-    audioRef.current = audio;
+const AudioContextClass =
+  window.AudioContext || (window as typeof window & {
+    webkitAudioContext: typeof AudioContext;
+  }).webkitAudioContext;
 
-    return () => {
-      audio.pause();
-      audio.currentTime = 0;
-    };
+  const audioContext = new AudioContextClass();
+  const analyser = audioContext.createAnalyser();
+  const source = audioContext.createMediaElementSource(audio);
+
+  analyser.fftSize = 256;
+
+  source.connect(analyser);
+  analyser.connect(audioContext.destination);
+
+  audioContextRef.current = audioContext;
+  analyserRef.current = analyser;
+  sourceRef.current = source;
+
+  audioRef.current = audio;
+
+  return () => {
+    audio.pause();
+    audio.currentTime = 0;
+
+    source.disconnect();
+    analyser.disconnect();
+    audioContext.close();
+  };
   }, [currentTrack]);
 
   useEffect(() => {
     if (!enabled || !audioRef.current) return;
 
-    audioRef.current
-      .play()
-      .then(() => setIsPlaying(true))
-      .catch(() => setIsPlaying(false));
-  }, [enabled, currentTrack]);
+    const playAudio = async () => {
+      try {
+        if (audioContextRef.current?.state === "suspended") {
+          await audioContextRef.current.resume();
+        }
+
+        await audioRef.current?.play();
+        setIsPlaying(true);
+      } catch {
+        setIsPlaying(false);
+      }
+    };
+
+    playAudio();
+}, [enabled, currentTrack]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -49,16 +92,24 @@ export default function MusicPlayer({ enabled }: { enabled: boolean }) {
     audioRef.current.volume = volume;
   }, [volume]);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current) return;
 
     if (isPlaying) {
       audioRef.current.pause();
       setIsPlaying(false);
-    } else {
-      audioRef.current
-        .play()
-        .then(() => setIsPlaying(true));
+      return;
+    }
+
+    if (audioContextRef.current?.state === "suspended") {
+      await audioContextRef.current.resume();
+    }
+
+    try {
+      await audioRef.current.play();
+      setIsPlaying(true);
+    } catch {
+      setIsPlaying(false);
     }
   };
 

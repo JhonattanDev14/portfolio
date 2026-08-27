@@ -2,7 +2,7 @@
 
 import { Canvas } from "@react-three/fiber";
 import SceneContent from "./SceneContent";
-import { useCallback, useState } from "react";
+import { useCallback, useState, useRef } from "react";
 import Preloader from "@/components/ui/preloader/preloader";
 import Resources from "./Resources";
 import MusicPlayer from "@/components/ui/musicPlayer/musicPlayer";
@@ -13,6 +13,7 @@ import { OrbitControls } from "@react-three/drei";
 export default function Scene() {
   const [ready, setReady] = useState(false);
   const [resourcesLoaded, setResourcesLoaded] = useState(false);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   const handleResourcesLoaded = useCallback(() => {
     setResourcesLoaded(true);
@@ -25,7 +26,10 @@ export default function Scene() {
         {/* <OrbitControls /> */}
         <Resources onLoaded={handleResourcesLoaded} />
 
-        <SceneContent ready={ready} />
+        <SceneContent
+          ready={ready}
+          analyserRef={analyserRef}
+        />
       </Canvas>
       
       {!ready && (
@@ -35,7 +39,12 @@ export default function Scene() {
         onFinish={() => setReady(true)}
         />
       )}
-      {ready && <MusicPlayer enabled={ready} />}
+      {ready && (
+        <MusicPlayer
+          enabled={ready}
+          analyserRef={analyserRef}
+        />
+      )}
     </>
   );
 }
