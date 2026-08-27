@@ -54,10 +54,6 @@ export default function SceneContent({
             path="/models/AudioWaves.glb"
             onSceneLoad={setAudioWaveScene}
           />
-          <AudioWave
-            scene={audioWaveScene}
-            analyserRef={analyserRef}
-          />
           <Navigation />
         </Suspense>
 
