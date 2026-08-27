@@ -9,7 +9,6 @@ import {
 import { Suspense, useState } from "react";
 import { sceneModels } from "./data/Models";
 import AnimatedModel from "./AnimatedModel";
-import AudioWave from "./AudioWave";
 import { Group } from "three";
 import Navigation from "./Navigation";
 
