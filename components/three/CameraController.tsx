@@ -4,7 +4,8 @@ import { useFrame, useThree } from "@react-three/fiber";
 import { PerspectiveCamera, MathUtils, Quaternion, Vector3 } from "three";
 import { useRef } from "react";
 import { gsap } from "gsap";
-import { cameraTarget } from "./CameraTarget";
+import { cameraTarget, mainCameraState } from "./CameraTarget";
+
 
 const worldPosition = new Vector3();
 const worldQuaternion = new Quaternion();
@@ -35,7 +36,12 @@ export default function CameraController({
 
     if (!target) return;
 
-    target.updateMatrixWorld(true);
+    const isMainCamera =
+      target === mainCameraState;
+
+    if (!isMainCamera) {
+      target.updateMatrixWorld(true);
+    }
 
     // Navigation between hotspots
     // Navigation between hotspots
@@ -45,8 +51,18 @@ if (
 ) {
       previousTarget.current = target;
 
-      target.getWorldPosition(worldPosition);
-      target.getWorldQuaternion(worldQuaternion);
+      if (isMainCamera) {
+        worldPosition.copy(
+          mainCameraState.position
+        );
+
+        worldQuaternion.copy(
+          mainCameraState.quaternion
+        );
+      } else {
+        target.getWorldPosition(worldPosition);
+        target.getWorldQuaternion(worldQuaternion);
+      }
 
       const transition = cameraTarget.transition;
 
@@ -87,7 +103,9 @@ if (
 
       if (camera instanceof PerspectiveCamera) {
         gsap.to(camera, {
-          fov: target.fov,
+          fov: isMainCamera
+            ? mainCameraState.fov
+            : target.fov,
           duration: transition?.duration ?? 2,
           ease: transition?.ease ?? "power2.inOut",
           onUpdate: () => {
@@ -117,10 +135,29 @@ if (
 
     const distance = camera.position.distanceTo(worldPosition);
 
-    if (!animationEnded.current && distance < endDistance) {
-      animationEnded.current = true;
-      onCameraAnimationEnd?.();
+    if (
+    !animationEnded.current &&
+    distance < endDistance
+  ) {
+    animationEnded.current = true;
+
+    if (camera instanceof PerspectiveCamera) {
+      mainCameraState.position.copy(
+        camera.position
+      );
+
+      mainCameraState.quaternion.copy(
+        camera.quaternion
+      );
+
+      mainCameraState.fov =
+        camera.fov;
+
+      mainCameraState.initialized = true;
     }
+
+    onCameraAnimationEnd?.();
+  }
 
     if (camera instanceof PerspectiveCamera) {
       camera.fov = MathUtils.lerp(
