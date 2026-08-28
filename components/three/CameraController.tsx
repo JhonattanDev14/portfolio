@@ -1,11 +1,19 @@
 "use client";
 
 import { useFrame, useThree } from "@react-three/fiber";
-import { PerspectiveCamera, MathUtils, Quaternion, Vector3 } from "three";
+import {
+  PerspectiveCamera,
+  MathUtils,
+  Quaternion,
+  Vector3,
+} from "three";
 import { useRef } from "react";
 import { gsap } from "gsap";
-import { cameraTarget, mainCameraState } from "./CameraTarget";
-
+import {
+  cameraTarget,
+  mainCameraState,
+  type CameraTarget,
+} from "./CameraTarget";
 
 const worldPosition = new Vector3();
 const worldQuaternion = new Quaternion();
@@ -29,45 +37,60 @@ export default function CameraController({
 
   const ready = useRef(false);
   const animationEnded = useRef(false);
-  const previousTarget = useRef<PerspectiveCamera | null>(null);
+
+  const previousTarget = useRef<CameraTarget | null>(null);
 
   useFrame(() => {
     const target = cameraTarget.current;
 
     if (!target) return;
 
-    const isMainCamera =
-      target === mainCameraState;
+    const isMainCamera = target === mainCameraState;
 
-    if (!isMainCamera) {
-      target.updateMatrixWorld(true);
-    }
+    // --------------------------------------------------
+    // Navigation between hotspots
+    // --------------------------------------------------
 
-    // Navigation between hotspots
-    // Navigation between hotspots
-if (
-  cameraTarget.transition &&
-  target !== previousTarget.current
-) {
+    if (
+      cameraTarget.transition &&
+      target !== previousTarget.current
+    ) {
       previousTarget.current = target;
 
-      if (isMainCamera) {
-        worldPosition.copy(
-          mainCameraState.position
-        );
+      // ----------------------------------------------
+      // Main camera
+      // ----------------------------------------------
 
-        worldQuaternion.copy(
-          mainCameraState.quaternion
-        );
-      } else {
+      if (isMainCamera) {
+        worldPosition.copy(mainCameraState.position);
+        worldQuaternion.copy(mainCameraState.quaternion);
+      }
+
+      // ----------------------------------------------
+      // Blender / Three.js camera
+      // ----------------------------------------------
+
+      else if (target instanceof PerspectiveCamera) {
+        target.updateMatrixWorld(true);
+
         target.getWorldPosition(worldPosition);
         target.getWorldQuaternion(worldQuaternion);
+      }
+
+      // Si por alguna razón el target no es válido,
+      // no intentamos animar.
+      else {
+        return;
       }
 
       const transition = cameraTarget.transition;
 
       gsap.killTweensOf(camera.position);
       gsap.killTweensOf(camera.quaternion);
+
+      // ----------------------------------------------
+      // Position
+      // ----------------------------------------------
 
       gsap.to(camera.position, {
         x: worldPosition.x,
@@ -76,6 +99,10 @@ if (
         duration: transition?.duration ?? 2,
         ease: transition?.ease ?? "power2.inOut",
       });
+
+      // ----------------------------------------------
+      // Rotation
+      // ----------------------------------------------
 
       const quaternionProxy = {
         x: camera.quaternion.x,
@@ -91,6 +118,7 @@ if (
         w: worldQuaternion.w,
         duration: transition?.rotationDuration ?? 4,
         ease: transition?.ease ?? "power2.inOut",
+
         onUpdate: () => {
           camera.quaternion.set(
             quaternionProxy.x,
@@ -101,13 +129,19 @@ if (
         },
       });
 
+      // ----------------------------------------------
+      // FOV
+      // ----------------------------------------------
+
       if (camera instanceof PerspectiveCamera) {
         gsap.to(camera, {
           fov: isMainCamera
             ? mainCameraState.fov
             : target.fov,
+
           duration: transition?.duration ?? 2,
           ease: transition?.ease ?? "power2.inOut",
+
           onUpdate: () => {
             camera.updateProjectionMatrix();
           },
@@ -119,7 +153,10 @@ if (
       return;
     }
 
+    // --------------------------------------------------
     // Initial camera animation
+    // --------------------------------------------------
+
     if (previousTarget.current) return;
 
     if (!ready.current) {
@@ -127,42 +164,89 @@ if (
       return;
     }
 
-    target.getWorldPosition(worldPosition);
-    camera.position.lerp(worldPosition, moveSpeed);
+    // --------------------------------------------------
+    // Main camera cannot use getWorldPosition()
+    // --------------------------------------------------
 
-    target.getWorldQuaternion(worldQuaternion);
-    camera.quaternion.slerp(worldQuaternion, rotationSpeed);
-
-    const distance = camera.position.distanceTo(worldPosition);
-
-    if (
-    !animationEnded.current &&
-    distance < endDistance
-  ) {
-    animationEnded.current = true;
-
-    if (camera instanceof PerspectiveCamera) {
-      mainCameraState.position.copy(
-        camera.position
-      );
-
-      mainCameraState.quaternion.copy(
-        camera.quaternion
-      );
-
-      mainCameraState.fov =
-        camera.fov;
-
-      mainCameraState.initialized = true;
+    if (isMainCamera) {
+      worldPosition.copy(mainCameraState.position);
+      worldQuaternion.copy(mainCameraState.quaternion);
     }
 
-    onCameraAnimationEnd?.();
-  }
+    // --------------------------------------------------
+    // Blender / Three.js camera
+    // --------------------------------------------------
+
+    else if (target instanceof PerspectiveCamera) {
+      target.getWorldPosition(worldPosition);
+      target.getWorldQuaternion(worldQuaternion);
+    }
+
+    // Invalid target
+    else {
+      return;
+    }
+
+    // --------------------------------------------------
+    // Position
+    // --------------------------------------------------
+
+    camera.position.lerp(
+      worldPosition,
+      moveSpeed
+    );
+
+    // --------------------------------------------------
+    // Rotation
+    // --------------------------------------------------
+
+    camera.quaternion.slerp(
+      worldQuaternion,
+      rotationSpeed
+    );
+
+    const distance = camera.position.distanceTo(
+      worldPosition
+    );
+
+    // --------------------------------------------------
+    // Animation finished
+    // --------------------------------------------------
+
+    if (
+      !animationEnded.current &&
+      distance < endDistance
+    ) {
+      animationEnded.current = true;
+
+      if (camera instanceof PerspectiveCamera) {
+        mainCameraState.position.copy(
+          camera.position
+        );
+
+        mainCameraState.quaternion.copy(
+          camera.quaternion
+        );
+
+        mainCameraState.fov = camera.fov;
+        mainCameraState.initialized = true;
+      }
+
+      onCameraAnimationEnd?.();
+    }
+
+    // --------------------------------------------------
+    // FOV
+    // --------------------------------------------------
 
     if (camera instanceof PerspectiveCamera) {
+      const targetFov = isMainCamera
+        ? mainCameraState.fov
+        : target.fov;
+
       camera.fov = MathUtils.lerp(
         camera.fov,
-        target.fov,
+        targetFov,
         zoomSpeed
       );
 
@@ -172,3 +256,4 @@ if (
 
   return null;
 }
+

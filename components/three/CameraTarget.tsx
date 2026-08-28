@@ -1,10 +1,9 @@
 import {
+  Object3D,
   PerspectiveCamera,
   Quaternion,
   Vector3,
 } from "three";
-
-import type { NavigationPoint } from "./data/Navigation";
 
 export type MainCameraState = {
   position: Vector3;
@@ -21,10 +20,16 @@ export const mainCameraState: MainCameraState = {
 };
 
 export type CameraTarget =
-  | PerspectiveCamera
+  | Object3D
   | MainCameraState;
+
+export type CameraTransition = {
+  duration?: number;
+  rotationDuration?: number;
+  ease?: string;
+};
 
 export const cameraTarget = {
   current: null as CameraTarget | null,
-  transition: null as NavigationPoint["transition"] | null,
+  transition: null as CameraTransition | null,
 };
