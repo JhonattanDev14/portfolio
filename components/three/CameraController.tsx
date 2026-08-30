@@ -9,6 +9,7 @@ import {
 } from "three";
 import { useRef } from "react";
 import { gsap } from "gsap";
+
 import {
   cameraTarget,
   mainCameraState,
@@ -19,7 +20,13 @@ const worldPosition = new Vector3();
 const worldQuaternion = new Quaternion();
 
 type CameraControllerProps = {
+  // Callback utilizado por la animación inicial de la cámara.
   onCameraAnimationEnd?: () => void;
+
+  // Callback utilizado para mostrar/ocultar el HTML
+  // después de terminar una transición de navegación.
+  onMenuChange?: (menu: string | undefined) => void;
+
   moveSpeed?: number;
   rotationSpeed?: number;
   zoomSpeed?: number;
@@ -28,6 +35,7 @@ type CameraControllerProps = {
 
 export default function CameraController({
   onCameraAnimationEnd,
+  onMenuChange,
   moveSpeed = 0.05,
   rotationSpeed = 0.05,
   zoomSpeed = 0.01,
@@ -36,16 +44,25 @@ export default function CameraController({
   const { camera } = useThree();
 
   const ready = useRef(false);
+
+  // Controla únicamente la animación inicial.
   const animationEnded = useRef(false);
 
-  const previousTarget = useRef<CameraTarget | null>(null);
+  // Guarda el último destino procesado.
+  const previousTarget =
+    useRef<CameraTarget | null>(null);
+
+  // Guardamos el timeline de navegación actual.
+  const timeline =
+    useRef<gsap.core.Timeline | null>(null);
 
   useFrame(() => {
     const target = cameraTarget.current;
 
     if (!target) return;
 
-    const isMainCamera = target === mainCameraState;
+    const isMainCamera =
+      target === mainCameraState;
 
     // --------------------------------------------------
     // Navigation between hotspots
@@ -55,100 +72,197 @@ export default function CameraController({
       cameraTarget.transition &&
       target !== previousTarget.current
     ) {
+      /*
+       * Marcamos este destino como procesado.
+       * Esto evita que el mismo destino vuelva a crear
+       * otra transición en los siguientes frames.
+       */
       previousTarget.current = target;
 
       // ----------------------------------------------
-      // Main camera
+      // Obtener posición y rotación del destino
       // ----------------------------------------------
 
       if (isMainCamera) {
-        worldPosition.copy(mainCameraState.position);
-        worldQuaternion.copy(mainCameraState.quaternion);
-      }
+        worldPosition.copy(
+          mainCameraState.position
+        );
 
-      // ----------------------------------------------
-      // Blender / Three.js camera
-      // ----------------------------------------------
-
-      else if (target instanceof PerspectiveCamera) {
+        worldQuaternion.copy(
+          mainCameraState.quaternion
+        );
+      } else if (
+        target instanceof PerspectiveCamera
+      ) {
         target.updateMatrixWorld(true);
 
-        target.getWorldPosition(worldPosition);
-        target.getWorldQuaternion(worldQuaternion);
-      }
+        target.getWorldPosition(
+          worldPosition
+        );
 
-      // Si por alguna razón el target no es válido,
-      // no intentamos animar.
-      else {
+        target.getWorldQuaternion(
+          worldQuaternion
+        );
+      } else {
         return;
       }
 
-      const transition = cameraTarget.transition;
+      const transition =
+        cameraTarget.transition;
+
+      // ----------------------------------------------
+      // Cancelar transición anterior
+      // ----------------------------------------------
+
+      timeline.current?.kill();
 
       gsap.killTweensOf(camera.position);
       gsap.killTweensOf(camera.quaternion);
+      gsap.killTweensOf(camera);
+
+      // ----------------------------------------------
+      // Preparar rotación
+      // ----------------------------------------------
+
+      const startQuaternion =
+        camera.quaternion.clone();
+
+      const endQuaternion =
+        worldQuaternion.clone();
+
+      /*
+       * Utilizamos siempre el camino más corto
+       * entre las dos rotaciones.
+       */
+      if (
+        startQuaternion.dot(endQuaternion) < 0
+      ) {
+        endQuaternion.set(
+          -endQuaternion.x,
+          -endQuaternion.y,
+          -endQuaternion.z,
+          -endQuaternion.w
+        );
+      }
+
+      const rotationProgress = {
+        value: 0,
+      };
+
+      // ----------------------------------------------
+      // Timeline de navegación
+      // ----------------------------------------------
+
+      const tl = gsap.timeline({
+        /*
+         * Este callback se ejecuta únicamente cuando
+         * terminó completamente la transición.
+         */
+        onComplete: () => {
+          /*
+           * Avisamos al HTML qué menú corresponde
+           * al punto actual.
+           */
+          onMenuChange?.(
+            cameraTarget.menu
+          );
+
+          /*
+           * La transición ya terminó.
+           *
+           * Limpiamos el objeto para evitar que
+           * vuelva a interpretarse como una transición
+           * pendiente.
+           */
+          cameraTarget.transition = null;
+        },
+      });
+
+      timeline.current = tl;
 
       // ----------------------------------------------
       // Position
       // ----------------------------------------------
 
-      gsap.to(camera.position, {
-        x: worldPosition.x,
-        y: worldPosition.y,
-        z: worldPosition.z,
-        duration: transition?.duration ?? 2,
-        ease: transition?.ease ?? "power2.inOut",
-      });
+      tl.to(
+        camera.position,
+        {
+          x: worldPosition.x,
+          y: worldPosition.y,
+          z: worldPosition.z,
+
+          duration:
+            transition?.duration ?? 2,
+
+          ease:
+            transition?.ease ??
+            "power2.inOut",
+        },
+        0
+      );
 
       // ----------------------------------------------
       // Rotation
       // ----------------------------------------------
 
-      const quaternionProxy = {
-        x: camera.quaternion.x,
-        y: camera.quaternion.y,
-        z: camera.quaternion.z,
-        w: camera.quaternion.w,
-      };
+      tl.to(
+        rotationProgress,
+        {
+          value: 1,
 
-      gsap.to(quaternionProxy, {
-        x: worldQuaternion.x,
-        y: worldQuaternion.y,
-        z: worldQuaternion.z,
-        w: worldQuaternion.w,
-        duration: transition?.rotationDuration ?? 4,
-        ease: transition?.ease ?? "power2.inOut",
+          duration:
+            transition?.rotationDuration ?? 4,
 
-        onUpdate: () => {
-          camera.quaternion.set(
-            quaternionProxy.x,
-            quaternionProxy.y,
-            quaternionProxy.z,
-            quaternionProxy.w
-          );
+          ease:
+            transition?.ease ??
+            "power2.inOut",
+
+          onUpdate: () => {
+            camera.quaternion
+              .copy(startQuaternion)
+              .slerp(
+                endQuaternion,
+                rotationProgress.value
+              );
+          },
         },
-      });
+        0
+      );
 
       // ----------------------------------------------
       // FOV
       // ----------------------------------------------
 
-      if (camera instanceof PerspectiveCamera) {
-        gsap.to(camera, {
-          fov: isMainCamera
-            ? mainCameraState.fov
-            : target.fov,
+      if (
+        camera instanceof PerspectiveCamera
+      ) {
+        tl.to(
+          camera,
+          {
+            fov: isMainCamera
+              ? mainCameraState.fov
+              : target.fov,
 
-          duration: transition?.duration ?? 2,
-          ease: transition?.ease ?? "power2.inOut",
+            duration:
+              transition?.duration ?? 2,
 
-          onUpdate: () => {
-            camera.updateProjectionMatrix();
+            ease:
+              transition?.ease ??
+              "power2.inOut",
+
+            onUpdate: () => {
+              camera.updateProjectionMatrix();
+            },
           },
-        });
+          0
+        );
       }
 
-      animationEnded.current = false;
+      /*
+       * La animación inicial no debe intervenir
+       * durante una navegación.
+       */
+      animationEnded.current = true;
 
       return;
     }
@@ -157,7 +271,13 @@ export default function CameraController({
     // Initial camera animation
     // --------------------------------------------------
 
-    if (previousTarget.current) return;
+    /*
+     * Si ya procesamos un destino de navegación,
+     * no ejecutamos la animación inicial.
+     */
+    if (previousTarget.current) {
+      return;
+    }
 
     if (!ready.current) {
       ready.current = true;
@@ -169,17 +289,29 @@ export default function CameraController({
     // --------------------------------------------------
 
     if (isMainCamera) {
-      worldPosition.copy(mainCameraState.position);
-      worldQuaternion.copy(mainCameraState.quaternion);
+      worldPosition.copy(
+        mainCameraState.position
+      );
+
+      worldQuaternion.copy(
+        mainCameraState.quaternion
+      );
     }
 
     // --------------------------------------------------
     // Blender / Three.js camera
     // --------------------------------------------------
 
-    else if (target instanceof PerspectiveCamera) {
-      target.getWorldPosition(worldPosition);
-      target.getWorldQuaternion(worldQuaternion);
+    else if (
+      target instanceof PerspectiveCamera
+    ) {
+      target.getWorldPosition(
+        worldPosition
+      );
+
+      target.getWorldQuaternion(
+        worldQuaternion
+      );
     }
 
     // Invalid target
@@ -205,9 +337,10 @@ export default function CameraController({
       rotationSpeed
     );
 
-    const distance = camera.position.distanceTo(
-      worldPosition
-    );
+    const distance =
+      camera.position.distanceTo(
+        worldPosition
+      );
 
     // --------------------------------------------------
     // Animation finished
@@ -219,7 +352,13 @@ export default function CameraController({
     ) {
       animationEnded.current = true;
 
-      if (camera instanceof PerspectiveCamera) {
+      if (
+        camera instanceof PerspectiveCamera
+      ) {
+        /*
+         * Guardamos el estado real de la cámara
+         * después de la animación inicial.
+         */
         mainCameraState.position.copy(
           camera.position
         );
@@ -228,10 +367,17 @@ export default function CameraController({
           camera.quaternion
         );
 
-        mainCameraState.fov = camera.fov;
-        mainCameraState.initialized = true;
+        mainCameraState.fov =
+          camera.fov;
+
+        mainCameraState.initialized =
+          true;
       }
 
+      /*
+       * Este callback pertenece únicamente
+       * a la animación inicial.
+       */
       onCameraAnimationEnd?.();
     }
 
@@ -239,7 +385,9 @@ export default function CameraController({
     // FOV
     // --------------------------------------------------
 
-    if (camera instanceof PerspectiveCamera) {
+    if (
+      camera instanceof PerspectiveCamera
+    ) {
       const targetFov = isMainCamera
         ? mainCameraState.fov
         : target.fov;
@@ -256,4 +404,3 @@ export default function CameraController({
 
   return null;
 }
-

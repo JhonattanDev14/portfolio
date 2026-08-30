@@ -2,8 +2,6 @@ import { ScrollControls, PerspectiveCamera } from "@react-three/drei";
 import {
   Lights,
   Model3D,
-  ScrollRig,
-  SceneManager,
   CameraController,
 } from ".";
 import { Suspense, useState } from "react";
@@ -15,9 +13,11 @@ import Navigation from "./Navigation";
 export default function SceneContent({
   ready,
   analyserRef,
+  onMenuChange,
 }: {
   ready: boolean;
   analyserRef: React.RefObject<AnalyserNode | null>;
+  onMenuChange: (menu: string | undefined) => void;
 }) {
 
   const [showObjects, setShowObjects] = useState(false);
@@ -25,7 +25,7 @@ export default function SceneContent({
 
   return (
     <>
-      <ScrollControls pages={3} damping={0.15}>
+      
         <PerspectiveCamera
           makeDefault
           position={[0, 1, 5]}
@@ -38,14 +38,13 @@ export default function SceneContent({
             rotationSpeed={0.9}
             zoomSpeed={0.01}
             endDistance={0.001}
+            onMenuChange={onMenuChange}
             onCameraAnimationEnd={() => {
               setShowObjects(true);
             }}
           />
         )}
 
-        <ScrollRig />
-        <SceneManager />
         <Lights />
 
         <Suspense fallback={null}>
@@ -64,7 +63,7 @@ export default function SceneContent({
               {...model}
             />
           ))}
-      </ScrollControls>
+      
     </>
   );
 }

@@ -129,8 +129,30 @@ export default function Navigation() {
       return;
     }
 
+    /*
+     * Buscamos la configuración del punto
+     * para obtener el menú asociado, si existe.
+     */
+    const point =
+      navigationPoints.find(
+        (item) => item.id === id
+      );
+
+    /*
+     * Guardamos el menú junto con el destino
+     * para que CameraController lo ejecute
+     * cuando termine la transición.
+     */
+    cameraTarget.menu =
+      point?.menu;
+
     activateHistoryGuard();
 
+    /*
+     * Actualizamos el destino de la cámara.
+     * CameraController detectará este cambio
+     * y ejecutará la transición.
+     */
     cameraTarget.current =
       camera;
 
@@ -221,8 +243,29 @@ export default function Navigation() {
       return;
     }
 
+    /*
+     * Buscamos el menú del punto al que estamos
+     * regresando.
+     */
+    const point =
+      navigationPoints.find(
+        (item) => item.id === previous
+      );
+
+    /*
+     * Guardamos el menú del destino para que
+     * CameraController lo ejecute al terminar.
+     */
+    cameraTarget.menu =
+      point?.menu;
+
     manager.goBack();
 
+    /*
+     * Actualizamos el destino de la cámara.
+     * CameraController detectará el cambio
+     * y ejecutará la transición.
+     */
     cameraTarget.current =
       previousCamera;
 

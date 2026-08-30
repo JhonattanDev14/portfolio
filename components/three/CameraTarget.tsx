@@ -1,6 +1,5 @@
 import {
   Object3D,
-  PerspectiveCamera,
   Quaternion,
   Vector3,
 } from "three";
@@ -32,4 +31,5 @@ export type CameraTransition = {
 export const cameraTarget = {
   current: null as CameraTarget | null,
   transition: null as CameraTransition | null,
+  menu: undefined as string | undefined,
 };
