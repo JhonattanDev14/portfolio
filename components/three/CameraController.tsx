@@ -9,6 +9,7 @@ import {
 } from "three";
 import { useRef } from "react";
 import { gsap } from "gsap";
+import { navigationService } from "./NavigationService";
 
 import {
   cameraTarget,
@@ -23,10 +24,6 @@ type CameraControllerProps = {
   // Callback utilizado por la animación inicial de la cámara.
   onCameraAnimationEnd?: () => void;
 
-  // Callback utilizado para mostrar/ocultar el HTML
-  // después de terminar una transición de navegación.
-  onMenuChange?: (menu: string | undefined) => void;
-
   moveSpeed?: number;
   rotationSpeed?: number;
   zoomSpeed?: number;
@@ -35,7 +32,6 @@ type CameraControllerProps = {
 
 export default function CameraController({
   onCameraAnimationEnd,
-  onMenuChange,
   moveSpeed = 0.05,
   rotationSpeed = 0.05,
   zoomSpeed = 0.01,
@@ -78,6 +74,11 @@ export default function CameraController({
        * otra transición en los siguientes frames.
        */
       previousTarget.current = target;
+
+      // Ocultar el menú inmediatamente al volver a la cámara principal.
+      if (isMainCamera) {
+        navigationService.setMenu(undefined);
+      }
 
       // ----------------------------------------------
       // Obtener posición y rotación del destino
@@ -163,18 +164,21 @@ export default function CameraController({
            * Avisamos al HTML qué menú corresponde
            * al punto actual.
            */
-          onMenuChange?.(
-            cameraTarget.menu
-          );
+          if(!isMainCamera) {
+            navigationService.setMenu(
+              cameraTarget.menu
+            );
 
-          /*
-           * La transición ya terminó.
-           *
-           * Limpiamos el objeto para evitar que
-           * vuelva a interpretarse como una transición
-           * pendiente.
-           */
-          cameraTarget.transition = null;
+            
+            /*
+            * La transición ya terminó.
+            *
+            * Limpiamos el objeto para evitar que
+            * vuelva a interpretarse como una transición
+            * pendiente.
+            */
+            cameraTarget.transition = null;
+          }
         },
       });
 

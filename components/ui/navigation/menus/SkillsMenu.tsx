@@ -1,6 +1,17 @@
 "use client";
 
-export default function SkillsMenu() {
+import type { NavigationRoute } from "@/components/three/data/NavigationRoutes";
+
+type SkillsMenuProps = {
+  routes: NavigationRoute[];
+  onNavigate: (id: string) => void;
+};
+
+export default function SkillsMenu({
+  routes,
+  onNavigate,
+}: SkillsMenuProps) {
+  console.log(onNavigate)
   return (
     <div
       className="
@@ -17,7 +28,14 @@ export default function SkillsMenu() {
         backdrop-blur-md
       "
     >
-      Skills
+      {routes.map((route) => (
+        <button
+          key={route.id}
+          onClick={() => onNavigate(route.id)}
+        >
+          {route.label}
+        </button>
+      ))}
     </div>
   );
 }

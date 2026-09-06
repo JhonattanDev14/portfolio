@@ -13,11 +13,9 @@ import Navigation from "./Navigation";
 export default function SceneContent({
   ready,
   analyserRef,
-  onMenuChange,
 }: {
   ready: boolean;
   analyserRef: React.RefObject<AnalyserNode | null>;
-  onMenuChange: (menu: string | undefined) => void;
 }) {
 
   const [showObjects, setShowObjects] = useState(false);
@@ -38,7 +36,6 @@ export default function SceneContent({
             rotationSpeed={0.9}
             zoomSpeed={0.01}
             endDistance={0.001}
-            onMenuChange={onMenuChange}
             onCameraAnimationEnd={() => {
               setShowObjects(true);
             }}

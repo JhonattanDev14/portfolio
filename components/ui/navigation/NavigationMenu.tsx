@@ -1,20 +1,33 @@
 "use client";
 
+import { navigationRoutes } from "@/components/three/data/NavigationRoutes";
 import SkillsMenu from "./menus/SkillsMenu";
+import { navigationService } from "@/components/three/NavigationService";
+import { useEffect, useState } from "react";
 
-type NavigationMenuProps = {
-  menu?: string;
-};
 
-export default function NavigationMenu({
-  menu,
-}: NavigationMenuProps) {
+export default function NavigationMenu() {
+
+  const [menu, setMenu] =
+    useState<string | undefined>();
+
+  useEffect(() => {
+    return navigationService.subscribe(setMenu);
+  }, []);
+
   if (!menu) {
     return null;
   }
 
   if (menu === "skills") {
-    return <SkillsMenu />;
+    const routes = navigationRoutes[menu] ?? [];
+
+    return (
+      <SkillsMenu
+        routes={routes}
+        onNavigate={navigationService.navigateTo}
+      />
+    );
   }
 
   return null;

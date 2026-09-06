@@ -16,17 +16,6 @@ export default function Scene() {
    * y está lista para ser utilizada.
    */
   const [ready, setReady] = useState(false);
-
-  /*
-   * Identifica qué menú de UI debe mostrarse.
-   *
-   * undefined = no hay menú.
-   * "skills" = mostrar SkillsMenu.
-   * "aboutMe" = mostrar AboutMeMenu, etc.
-   */
-  const [activeMenu, setActiveMenu] =
-    useState<string | undefined>();
-
   /*
    * Controla cuándo terminaron de cargar
    * los recursos necesarios de la escena.
@@ -68,7 +57,6 @@ export default function Scene() {
         <SceneContent
           ready={ready}
           analyserRef={analyserRef}
-          onMenuChange={setActiveMenu}
         />
       </Canvas>
 
@@ -104,10 +92,8 @@ export default function Scene() {
        * Por lo tanto, no pertenece al mundo 3D
        * y no se moverá cuando cambie la cámara.
        */}
-      {ready && activeMenu && (
-        <NavigationMenu
-          menu={activeMenu}
-        />
+      {ready && (
+        <NavigationMenu />
       )}
     </>
   );
