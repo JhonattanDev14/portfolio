@@ -10,16 +10,24 @@ class NavigationService {
   }
 
   navigateTo(id: string) {
-    if (!this.controller) {
-      console.warn(
-        "NavigationService todavía no está inicializado"
-      );
-
-      return;
-    }
-
-    this.controller.navigateTo(id);
+  if (!this.controller) {
+    console.warn(
+      "NavigationService todavía no está inicializado"
+    );
+    return;
   }
+
+  window.history.pushState(
+    {
+      ...window.history.state,
+      navigationPoint: id,
+    },
+    "",
+    window.location.href
+  );
+
+  this.controller.navigateTo(id);
+}
 
   goBack() {
     if (!this.controller) {

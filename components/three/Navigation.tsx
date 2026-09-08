@@ -94,13 +94,12 @@ export default function Navigation() {
   useEffect(() => {
     const history = navigationHistory.current;
 
-    history.activate();
     history.start();
 
     return () => {
       history.stop();
     };
-  }, []);
+}, []);
 
   return (
     <>
@@ -117,9 +116,10 @@ export default function Navigation() {
             position={item.position}
             label={item.point.label ?? ""}
             className={item.point.className}
-            onNavigate={() =>
-              navigationService.navigateTo(item.point.id)
-            }
+            onNavigate={() => {
+              // navigationHistory.current.activate();
+              navigationService.navigateTo(item.point.id);
+            }}
           />
         );
       })}

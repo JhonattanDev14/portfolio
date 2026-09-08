@@ -11,7 +11,6 @@ export default function SkillsMenu({
   routes,
   onNavigate,
 }: SkillsMenuProps) {
-  console.log(onNavigate)
   return (
     <div
       className="

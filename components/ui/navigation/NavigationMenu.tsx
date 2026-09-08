@@ -25,7 +25,7 @@ export default function NavigationMenu() {
     return (
       <SkillsMenu
         routes={routes}
-        onNavigate={navigationService.navigateTo}
+        onNavigate={(id) => navigationService.navigateTo(id)}
       />
     );
   }

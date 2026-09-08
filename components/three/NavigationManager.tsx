@@ -24,23 +24,18 @@ export class NavigationManager {
       return false;
     }
 
-    this.history.push(id);
-    this.currentPoint = id;
+    const existingIndex = this.history.indexOf(id);
 
-    return true;
-  }
-
-  goBack() {
-    if (!this.canGoBack()) {
-      return null;
+    if (existingIndex !== -1) {
+      this.history = this.history.slice(0, existingIndex + 1);
+      
+    } else {
+      this.history.push(id);
     }
 
-    this.history.pop();
-
-    this.currentPoint =
-      this.history[this.history.length - 1];
-
-    return this.currentPoint;
+    this.currentPoint = id;
+    
+    return true;
   }
 
   goHome() {

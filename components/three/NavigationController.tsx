@@ -18,12 +18,17 @@ export class NavigationController {
     this.cameras = cameras;
   }
 
+    getCurrentPoint() {
+        return this.manager.getCurrentPoint();
+    }
+
   // Comprueba si existe navegación anterior.
     canGoBack() {
     return this.manager.canGoBack();
     }
     
     navigateTo(id: string) {
+        
         const from = this.manager.getCurrentPoint();
 
         const camera = this.cameras.get(id);
@@ -55,7 +60,7 @@ export class NavigationController {
         const history = this.manager.getHistory();
 
         const previous = history[history.length - 2];
-
+        
         if (!previous) return;
 
         let camera: Object3D | MainCameraState;
