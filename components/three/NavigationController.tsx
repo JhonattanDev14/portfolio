@@ -1,101 +1,127 @@
 import { Object3D } from "three";
 
-import { NavigationManager } from "./NavigationManager";
-import { executeNavigation } from "./NavigationExec";
-import { MainCameraState, mainCameraState } from "./CameraTarget";
-
+import { NavigationHistory } from "./NavigationHistory";
+import {
+  executeNavigation,
+  canExecuteNavigation,
+} from "./NavigationExec";
+import {
+  MainCameraState,
+  mainCameraState,
+} from "./CameraTarget";
 
 export class NavigationController {
-  private manager: NavigationManager;
-
   private cameras: Map<string, Object3D>;
+  private history: NavigationHistory;
 
   constructor(
-    manager: NavigationManager,
+    history: NavigationHistory,
     cameras: Map<string, Object3D>
   ) {
-    this.manager = manager;
     this.cameras = cameras;
+    this.history = history;
   }
 
-    getCurrentPoint() {
-        return this.manager.getCurrentPoint();
+  getCurrentPoint() {
+    return this.history.getCurrentPoint();
+  }
+
+  canGoBack() {
+    return this.history.canGoBack();
+  }
+
+  canNavigate(id: string) {
+    const from = this.history.getCurrentPoint();
+
+    return canExecuteNavigation(from, id);
+  }
+
+  navigateTo(id: string) {
+    const from = this.history.getCurrentPoint();
+
+    const camera = this.cameras.get(id);
+
+    if (!camera) {
+      console.warn(
+        `No se encontró la cámara: ${id}`
+      );
+
+      return false;
     }
 
-  // Comprueba si existe navegación anterior.
-    canGoBack() {
-    return this.manager.canGoBack();
+    const exec = executeNavigation({
+      from,
+      to: id,
+      camera,
+    });
+
+    if (!exec) return false;
+
+    return true;
+  }
+
+  goBack(fromBrowser = false) {
+    const current = this.history.getCurrentPoint();
+
+    const previous =
+      this.history.back(fromBrowser);
+
+    if (!previous) return;
+
+    let camera: Object3D | MainCameraState;
+
+    if (previous === "main") {
+      if (!mainCameraState.initialized) {
+        console.warn(
+          "MainCameraState todavía no está inicializado"
+        );
+
+        return;
+      }
+
+      camera = mainCameraState;
+    } else {
+      const previousCamera =
+        this.cameras.get(previous);
+
+      if (!previousCamera) {
+        console.warn(
+          `No se encontró la cámara: ${previous}`
+        );
+
+        return;
+      }
+
+      camera = previousCamera;
     }
-    
-    navigateTo(id: string) {
-        
-        const from = this.manager.getCurrentPoint();
 
-        const camera = this.cameras.get(id);
+    executeNavigation({
+      from: current,
+      to: previous,
+      camera,
+    });
+  }
 
-        if (!camera) {
-            console.warn(
-            `No se encontró la cámara: ${id}`
-            );
+  goHome() {
+    const current = this.history.getCurrentPoint();
 
-            return;
-        }
-
-        executeNavigation({
-            manager: this.manager,
-            from,
-            to: id,
-            camera,
-        });
+    if (current === "main") {
+      return;
     }
 
-    goBack() {
-        if (!this.manager.canGoBack()) {
-            console.log("No hay navegación anterior");
-            return;
-        }
+    if (!mainCameraState.initialized) {
+      console.warn(
+        "MainCameraState todavía no está inicializado"
+      );
 
-        const current = this.manager.getCurrentPoint();
-
-        const history = this.manager.getHistory();
-
-        const previous = history[history.length - 2];
-        
-        if (!previous) return;
-
-        let camera: Object3D | MainCameraState;
-
-        if (previous === "main") {
-            
-            if (!mainCameraState.initialized) {
-            console.warn(
-                "MainCameraState todavía no está inicializado"
-            );
-
-            return;
-            }
-
-            camera = mainCameraState;
-        } else {
-            const previousCamera =
-            this.cameras.get(previous);
-
-            if (!previousCamera) {
-            console.warn(
-                `No se encontró la cámara: ${previous}`
-            );
-
-            return;
-            }
-
-            camera = previousCamera;
-        }
-
-        executeNavigation({
-            manager: this.manager,
-            from: current,
-            to: previous,
-            camera,
-        });
+      return;
     }
+
+    executeNavigation({
+      from: current,
+      to: "main",
+      camera: mainCameraState,
+    });
+    this.history.reset();
+  }
 }

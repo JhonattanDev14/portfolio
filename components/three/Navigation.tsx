@@ -6,7 +6,6 @@ import { Object3D, Vector3 } from "three";
 
 import { navigationPoints } from "./data/Navigation";
 import NavigationHotspot from "../ui/navigation/NavigationHotspot";
-import { NavigationManager } from "./NavigationManager";
 import { NavigationController } from "./NavigationController";
 import { NavigationHistory } from "./NavigationHistory";
 import { navigationService } from "./NavigationService";
@@ -15,22 +14,46 @@ export default function Navigation() {
   // Cargamos el modelo de navegación.
   const { scene } = useGLTF("/models/Navigation.glb");
 
-    // Creamos el historial interno una sola vez.
-    const navigationManager = useRef(
-      new NavigationManager("main")
-    );
+  // Creamos el historial una sola vez.
+  const navigationHistory = useRef(
+    new NavigationHistory()
+  );
 
-    // Guardamos las cámaras encontradas.
-    const cameras = useRef(
-      new Map<string, Object3D>()
-    );
+  // Guardamos las cámaras encontradas.
+  const cameras = useRef(
+    new Map<string, Object3D>()
+  );
 
-    // Inicilizamos el servicio una sola vez
-    useEffect(() => {
-      navigationService.initialize(
-        navigationController.current
-      );
-    }, []);
+  // Creamos el controlador una sola vez.
+  const navigationController = useRef(
+    new NavigationController(
+      navigationHistory.current,
+      cameras.current
+    )
+  );
+
+  // Inicializamos el servicio.
+  useEffect(() => {
+    console.log("INITIALIZANDO NAVIGATION SERVICE");
+
+    navigationService.initialize(
+      navigationController.current,
+      navigationHistory.current
+    );
+  }, []);
+
+  // Conectamos el botón Atrás del navegador.
+  useEffect(() => {
+    const history = navigationHistory.current;
+
+    history.start(() => {
+      navigationController.current.goBack(true);
+    });
+
+    return () => {
+      history.stop();
+    };
+  }, []);
 
   // Buscamos y preparamos todos los hotspots.
   const hotspots = navigationPoints
@@ -72,41 +95,12 @@ export default function Navigation() {
         position,
       };
     })
-    // Eliminamos los puntos que no existen.
     .filter(Boolean);
-
-  // Creamos el controlador una sola vez.
-  const navigationController = useRef(
-    new NavigationController(
-      navigationManager.current,
-      cameras.current
-    )
-  );
-
-  // Creamos el historial del navegador una sola vez.
-  const navigationHistory = useRef(
-    new NavigationHistory(
-      navigationController.current
-    )
-  );
-
-  // Conectamos el botón Atrás del navegador.
-  useEffect(() => {
-    const history = navigationHistory.current;
-
-    history.start();
-
-    return () => {
-      history.stop();
-    };
-}, []);
 
   return (
     <>
-      {/* Renderizamos el modelo de navegación. */}
       <primitive object={scene} />
 
-      {/* Renderizamos cada hotspot UI. */}
       {hotspots.map((item) => {
         if (!item) return null;
 
@@ -117,8 +111,9 @@ export default function Navigation() {
             label={item.point.label ?? ""}
             className={item.point.className}
             onNavigate={() => {
-              // navigationHistory.current.activate();
-              navigationService.navigateTo(item.point.id);
+              navigationService.navigateTo(
+                item.point.id
+              );
             }}
           />
         );

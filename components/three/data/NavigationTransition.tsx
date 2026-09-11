@@ -8,6 +8,20 @@ export type NavigationTransition = {
 
 export const navigationTransitions: NavigationTransition[] = [
   {
+    from: "projects",
+    to: "skills",
+    duration: 2,
+    rotationDuration: 2.4,
+    ease: "power2.inOut",
+  },
+  {
+    from: "skills",
+    to: "projects",
+    duration: 2,
+    rotationDuration: 2.4,
+    ease: "power2.inOut",
+  },
+  {
     from: "main",
     to: "projects",
     duration: 2,

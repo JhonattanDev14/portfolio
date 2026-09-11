@@ -2,22 +2,20 @@ import { Object3D } from "three";
 
 import { navigationPoints } from "./data/Navigation";
 import { navigationTransitions } from "./data/NavigationTransition";
-import { NavigationManager } from "./NavigationManager";
 import { cameraTarget, MainCameraState } from "./CameraTarget";
 
 interface NavigationActionOptions {
-  manager: NavigationManager;
   from: string;
   to: string;
   camera: Object3D | MainCameraState;
 }
 
 export function executeNavigation({
-  manager,
   from,
   to,
   camera,
 }: NavigationActionOptions) {
+  
   // Buscamos la transición.
   const transition = navigationTransitions.find(
     (item) =>
@@ -38,13 +36,6 @@ export function executeNavigation({
     (item) => item.id === to
   );
 
-  // Actualizamos el historial.
-  const navigated = manager.navigateTo(to);
-
-  if (!navigated) {
-    return false;
-  }
-
   // Actualizamos el menú.
   cameraTarget.menu = point?.menu;
 
@@ -55,4 +46,14 @@ export function executeNavigation({
   cameraTarget.transition = transition;
 
   return true;
+}
+export function canExecuteNavigation(
+  from: string,
+  to: string
+) {
+  return navigationTransitions.some(
+    (item) =>
+      item.from === from &&
+      item.to === to
+  );
 }

@@ -1,36 +1,44 @@
 import { NavigationController } from "./NavigationController";
+import { NavigationHistory } from "./NavigationHistory";
 
 class NavigationService {
   private controller: NavigationController | null = null;
+  private history: NavigationHistory | null = null;
   private menu: string | undefined;
-  private listeners = new Set<(menu?: string) => void>(); 
+  private listeners = new Set<(menu?: string) => void>();
 
-  initialize(controller: NavigationController) {
+  initialize(
+    controller: NavigationController,
+    history: NavigationHistory
+  ) {
     this.controller = controller;
+    this.history = history;
   }
 
   navigateTo(id: string) {
-  if (!this.controller) {
-    console.warn(
-      "NavigationService todavía no está inicializado"
-    );
-    return;
+    if (!this.controller || !this.history) {
+      console.warn(
+        "NavigationService todavía no está inicializado"
+      );
+
+      return;
+    }
+
+    const canNavigate =
+      this.controller.canNavigate(id);
+
+    if (!canNavigate) return;
+
+    const navigated =
+      this.controller.navigateTo(id);
+
+    if (!navigated) return;
+
+    this.history.push(id);
   }
 
-  window.history.pushState(
-    {
-      ...window.history.state,
-      navigationPoint: id,
-    },
-    "",
-    window.location.href
-  );
-
-  this.controller.navigateTo(id);
-}
-
   goBack() {
-    if (!this.controller) {
+    if (!this.controller || !this.history) {
       console.warn(
         "NavigationService todavía no está inicializado"
       );
@@ -44,7 +52,20 @@ class NavigationService {
   canGoBack() {
     return this.controller?.canGoBack() ?? false;
   }
-  
+
+  goHome() {
+    if (!this.controller || !this.history) {
+      console.warn(
+        "NavigationService todavía no está inicializado"
+      );
+
+      return;
+    }
+
+    // 
+    this.controller.goHome();
+  }
+
   subscribe(listener: (menu?: string) => void) {
     this.listeners.add(listener);
 
