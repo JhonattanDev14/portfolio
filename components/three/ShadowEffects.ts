@@ -33,20 +33,20 @@ export function applyShadowEffects(scene: Group, enabled?: boolean) {
       return;
     }
 
-    if (object.isLight) {
+    // GLTF imports the configured shadow-casting lights as SpotLights.
+    if (object instanceof SpotLight) {
       const config = sceneShadowLights[object.name];
       if (!config) return;
 
-      const light = object as SpotLight;
-      light.castShadow = (enabled ?? true) && config.castShadow;
+      object.castShadow = (enabled ?? true) && config.castShadow;
 
       if (config.bias !== undefined) 
-        light.shadow.bias = config.bias;
+        object.shadow.bias = config.bias;
       if (config.normalBias !== undefined) {
-        light.shadow.normalBias = config.normalBias;
+        object.shadow.normalBias = config.normalBias;
       }
       if (config.mapSize) 
-        light.shadow.mapSize.set(...config.mapSize);
+        object.shadow.mapSize.set(...config.mapSize);
     }
   });
 }
