@@ -15,6 +15,13 @@ export const navigationTransitions: NavigationTransition[] = [
     ease: "power2.inOut",
   },
   {
+    from: "projects",
+    to: "aboutMe",
+    duration: 2,
+    rotationDuration: 2.4,
+    ease: "power2.inOut",
+  },
+  {
     from: "skills",
     to: "projects",
     duration: 2,
@@ -59,6 +66,13 @@ export const navigationTransitions: NavigationTransition[] = [
   {
     from: "aboutMe",
     to: "main",
+    duration: 2,
+    rotationDuration: 1.5,
+    ease: "power2.inOut",
+  },
+  {
+    from: "aboutMe",
+    to: "projects",
     duration: 2,
     rotationDuration: 1.5,
     ease: "power2.inOut",

@@ -64,3 +64,12 @@ button{
   background:var(--primary);
   color:white;
 }
+
+.hotspot {
+  background-color: #000000;
+  border: 1px solid #9d2766;
+  height: 5px;
+  width: 5px;
+  size: 0px;
+  text-size-adjust: 1;
+}

@@ -17,7 +17,6 @@ interface Model3DProps {
     rotationSpeed?: number;
 
     animationSpeed?: number;
-
     lazy?: boolean;
     delay?: number;
 
@@ -46,7 +45,6 @@ function LoadedModel({
     const { actions } = useAnimations(animations, group);
 
     const clonedScene = useMemo(() => scene.clone(), [scene]);
-
 
     // Avisar cuando el modelo ya está montado
     useEffect(() => {

@@ -1,6 +1,7 @@
 "use client";
 
 import { Canvas } from "@react-three/fiber";
+import * as THREE from 'three';
 import SceneContent from "./SceneContent";
 import { useCallback, useRef, useState } from "react";
 
@@ -49,7 +50,7 @@ export default function Scene() {
        *
        * Todo lo que está aquí pertenece al mundo 3D.
        */}
-      <Canvas className="relative z-10 h-screen w-full">
+      <Canvas shadows className="relative z-10 h-screen w-full" >
         <Resources
           onLoaded={handleResourcesLoaded}
         />

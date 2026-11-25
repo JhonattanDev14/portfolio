@@ -34,7 +34,6 @@ export default function Navigation() {
 
   // Inicializamos el servicio.
   useEffect(() => {
-    console.log("INITIALIZANDO NAVIGATION SERVICE");
 
     navigationService.initialize(
       navigationController.current,

@@ -9,6 +9,7 @@ import { sceneModels } from "./data/Models";
 import AnimatedModel from "./AnimatedModel";
 import { Group } from "three";
 import Navigation from "./Navigation";
+import { applyShadowEffects } from "./ShadowEffects";
 
 export default function SceneContent({
   ready,
@@ -45,7 +46,10 @@ export default function SceneContent({
         <Lights />
 
         <Suspense fallback={null}>
-          <Model3D path="/models/Escene-opt.glb" />
+          <Model3D
+            path="/models/Escene.glb"
+            onSceneLoad={applyShadowEffects}
+          />
           <Model3D
             path="/models/AudioWaves.glb"
             onSceneLoad={setAudioWaveScene}
